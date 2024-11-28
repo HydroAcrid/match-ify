@@ -10,12 +10,13 @@ const SpotifyWebApi = require('spotify-web-api-node');
 const { initializeApp, cert } = require('firebase-admin/app');
 const { getAuth } = require('firebase-admin/auth');
 const { getFirestore } = require('firebase-admin/firestore');
-const axios = require('axios');
+const serviceAccountPath = path.resolve(__dirname, '../ked225-firebase-adminsdk-twon8-d3560c296d.json');
+
 
 
 // Initialize Firebase Admin
 initializeApp({
-  credential: cert(require('../ked225-firebase-adminsdk-twon8-d3560c296d.json')),
+  credential: cert(require(serviceAccountPath))
 });
 
 const db = getFirestore();
@@ -51,44 +52,109 @@ app.post('/spotify/auth', async (req, res) => {
     const { code } = req.body;
     console.log('Authorization code received in backend:', code);
 
+    // Validate input
+    if (!code) {
+      return res.status(400).json({
+        error: 'Authentication failed',
+        details: 'No authorization code provided'
+      });
+    }
+
     const spotifyApi = new SpotifyWebApi({
       clientId: spotifyClientId,
       clientSecret: spotifyClientSecret,
       redirectUri: redirectUri,
     });
 
-    // Exchange authorization code for tokens
-    const data = await spotifyApi.authorizationCodeGrant(code);
-    console.log('Token exchange response:', data.body);
+    try {
+      // Exchange authorization code for tokens
+      const data = await spotifyApi.authorizationCodeGrant(code);
+      console.log('Token exchange response:', {
+        access_token: '****', // Mask sensitive information
+        token_type: data.body.token_type,
+        expires_in: data.body.expires_in,
+        scope: data.body.scope
+      });
 
-    const { access_token, refresh_token } = data.body;
-    spotifyApi.setAccessToken(access_token);
+      const { access_token, refresh_token } = data.body;
+      spotifyApi.setAccessToken(access_token);
 
-    // Fetch user profile using spotify-web-api-node
-    const userProfile = await spotifyApi.getMe();
-    const spotifyId = userProfile.body.id;
-    const email = userProfile.body.email;
+      // Fetch user profile 
+      let userProfile;
+      try {
+        userProfile = await spotifyApi.getMe();
+      } catch (profileError) {
+        console.error('Error fetching Spotify profile:', profileError);
+        return res.status(500).json({
+          error: 'Profile retrieval failed',
+          details: profileError.message
+        });
+      }
 
-    // Create a Firebase custom token
-    const firebaseToken = await auth.createCustomToken(spotifyId, { spotifyId });
+      const spotifyId = userProfile.body.id;
+      const email = userProfile.body.email;
 
-    // Save the user data and tokens in Firestore
-    await db.collection('users').doc(spotifyId).set(
-      {
-        email,
-        spotifyAccessToken: access_token,
-        spotifyRefreshToken: refresh_token,
-        displayName: userProfile.body.display_name,
-      },
-      { merge: true }
-    );
+      // Create a Firebase custom token
+      let firebaseToken;
+      try {
+        firebaseToken = await auth.createCustomToken(spotifyId, { spotifyId });
+      } catch (tokenError) {
+        console.error('Error creating Firebase token:', tokenError);
+        return res.status(500).json({
+          error: 'Token creation failed',
+          details: tokenError.message
+        });
+      }
 
-    res.status(200).json({ firebaseToken });
+      // Save the user data and tokens in Firestore
+      try {
+        await db.collection('users').doc(spotifyId).set(
+          {
+            email,
+            spotifyAccessToken: access_token,
+            spotifyRefreshToken: refresh_token,
+            displayName: userProfile.body.display_name,
+            lastAuthenticated: new Date()
+          },
+          { merge: true }
+        );
+      } catch (firestoreError) {
+        console.error('Error saving user to Firestore:', firestoreError);
+        return res.status(500).json({
+          error: 'User storage failed',
+          details: firestoreError.message
+        });
+      }
+
+      res.status(200).json({ 
+        firebaseToken,
+        userId: spotifyId
+      });
+
+    } catch (exchangeError) {
+      console.error('Token Exchange Error:', {
+        message: exchangeError.message,
+        responseData: exchangeError.response?.data
+      });
+
+      // More specific error handling
+      if (exchangeError.message.includes('invalid_grant')) {
+        return res.status(400).json({
+          error: 'Authentication failed',
+          details: 'Invalid or expired authorization code'
+        });
+      }
+
+      res.status(400).json({
+        error: 'Authentication failed',
+        details: exchangeError.message || 'Invalid authorization code'
+      });
+    }
   } catch (error) {
-    console.error('Error during Spotify auth:', error.response?.data || error.message);
-    res.status(error.response?.status || 500).json({
-      error: 'Authentication failed',
-      details: error.response?.data || error.message,
+    console.error('Overall Auth Error:', error);
+    res.status(500).json({
+      error: 'Server error during authentication',
+      details: error.message
     });
   }
 });

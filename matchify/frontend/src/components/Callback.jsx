@@ -1,12 +1,19 @@
-import React, { useEffect } from 'react';
+// Callback.jsx
+import React, { useEffect, useRef } from "react";
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../firebase';
 import { signInWithCustomToken } from 'firebase/auth';
 
 const Callback = () => {
   const navigate = useNavigate();
+  const hasFetched = useRef(false); // Prevent multiple executions
 
   useEffect(() => {
+    if (hasFetched.current) {
+      return; // Exit if already fetched
+    }
+    hasFetched.current = true; // Mark as fetched
+
     const code = new URLSearchParams(window.location.search).get('code');
     console.log('Authorization code received in frontend:', code);
 
@@ -19,43 +26,58 @@ const Callback = () => {
       })
         .then(async (res) => {
           if (!res.ok) {
-            // If response is not ok (status code not in 200-299 range)
-            // Attempt to parse the error message from the response
             let errorMessage = 'Authentication failed';
             try {
               const errorData = await res.json();
-              errorMessage = errorData.error || errorMessage;
+              errorMessage = errorData.details || errorMessage;
+
+              // Specifically handle authorization code expiration
+              if (errorMessage.includes('Authorization code expired')) {
+                alert('Login session expired. Please login again.');
+                window.location.href = '/'; // Redirect to home/login page
+                return null;
+              }
+
+              // Handle invalid grant errors
+              if (errorMessage.includes('invalid_grant')) {
+                alert('Invalid login. Please try again.');
+                window.location.href = '/';
+                return null;
+              }
             } catch (parseError) {
-              // If parsing fails, use the default error message
               console.error('Error parsing error response:', parseError);
             }
             throw new Error(errorMessage);
           }
-          // If response is ok, parse it as JSON
           return res.json();
         })
         .then((data) => {
-          const { firebaseToken } = data;
+          if (data) {
+            const { firebaseToken } = data;
 
-          // Sign in to Firebase with the custom token
-          signInWithCustomToken(auth, firebaseToken)
-            .then((userCredential) => {
-              // User is signed in
-              console.log('User signed in:', userCredential.user);
-              navigate('/setup'); // Redirect to setup page to set email and password
-            })
-            .catch((error) => {
-              console.error('Firebase sign-in error:', error);
-            });
+            signInWithCustomToken(auth, firebaseToken)
+              .then((userCredential) => {
+                console.log('User signed in:', userCredential.user);
+                navigate('/setup');
+              })
+              .catch((error) => {
+                console.error('Firebase sign-in error:', error);
+                console.error('Error code:', error.code);
+                console.error('Error message:', error.message);
+                alert(`Firebase sign-in error: ${error.message}`);
+                window.location.href = '/';
+              });
+          }
         })
         .catch((error) => {
-          console.error('Error:', error.message);
-          // Optionally display an error message to the user
+          console.error('Authentication Error:', error.message);
+          alert(error.message);
+          window.location.href = '/';
         });
     }
   }, [navigate]);
 
-  return <div>Loading...</div>;
+  return <div>Loading authentication...</div>;
 };
 
 export default Callback;
