@@ -59,3 +59,6 @@ typings/
 
 # next.js build output
 .next
+
+# no service account file
+ked225-firebase-adminsdk-twon8-d3560c296d.json

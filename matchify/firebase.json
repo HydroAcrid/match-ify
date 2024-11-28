@@ -14,5 +14,13 @@
         "npm --prefix \"$RESOURCE_DIR\" run lint"
       ]
     }
-  ]
+  ],
+  "emulators": {
+    "functions": {
+      "secrets": ["SPOTIFY_CLIENT_ID", "SPOTIFY_CLIENT_SECRET"]
+    },
+    "auth": {
+      "port": 9099
+    }
+  }
 }
