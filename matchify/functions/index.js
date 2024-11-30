@@ -1,8 +1,5 @@
 const path = require('path');
-
-// Load environment variables from .env file
-require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
-
+const dotenv = require('dotenv');
 const { onRequest } = require('firebase-functions/v2/https');
 const express = require('express');
 const cors = require('cors');
@@ -10,9 +7,11 @@ const SpotifyWebApi = require('spotify-web-api-node');
 const { initializeApp, cert } = require('firebase-admin/app');
 const { getAuth } = require('firebase-admin/auth');
 const { getFirestore } = require('firebase-admin/firestore');
+
 const serviceAccountPath = path.resolve(__dirname, '../ked225-firebase-adminsdk-twon8-d3560c296d.json');
 
-
+// Load environment variables from .env file
+dotenv.config({ path: path.resolve(__dirname, '../.env') }); // Correct
 
 // Initialize Firebase Admin
 initializeApp({
@@ -28,6 +27,7 @@ const spotifyClientSecret = process.env.SPOTIFY_CLIENT_SECRET;
 const redirectUri = 'http://localhost:5173/callback';
 
 console.log('Spotify Client ID:', spotifyClientId);
+console.log('Spotify Client Secret:', spotifyClientSecret ? 'Loaded' : 'Not Loaded');
 
 // Initialize Express app
 const app = express();
@@ -93,11 +93,14 @@ app.post('/spotify/auth', async (req, res) => {
 
       const spotifyId = userProfile.body.id;
       const email = userProfile.body.email;
+      const displayName = userProfile.body.display_name;
+      const photoURL = userProfile.body.images?.[0]?.url || null;
 
       // Create a Firebase custom token
       let firebaseToken;
       try {
         firebaseToken = await auth.createCustomToken(spotifyId, { spotifyId });
+        console.log('Generated Firebase Token:', firebaseToken); // Add this line
       } catch (tokenError) {
         console.error('Error creating Firebase token:', tokenError);
         return res.status(500).json({
@@ -113,7 +116,8 @@ app.post('/spotify/auth', async (req, res) => {
             email,
             spotifyAccessToken: access_token,
             spotifyRefreshToken: refresh_token,
-            displayName: userProfile.body.display_name,
+            displayName,
+            photoURL,
             lastAuthenticated: new Date()
           },
           { merge: true }
@@ -134,9 +138,10 @@ app.post('/spotify/auth', async (req, res) => {
     } catch (exchangeError) {
       console.error('Token Exchange Error:', {
         message: exchangeError.message,
-        responseData: exchangeError.response?.data
+        responseData: exchangeError.response?.data,
+        stack: exchangeError.stack,
       });
-
+    
       // More specific error handling
       if (exchangeError.message.includes('invalid_grant')) {
         return res.status(400).json({
@@ -144,12 +149,12 @@ app.post('/spotify/auth', async (req, res) => {
           details: 'Invalid or expired authorization code'
         });
       }
-
+    
       res.status(400).json({
         error: 'Authentication failed',
         details: exchangeError.message || 'Invalid authorization code'
       });
-    }
+    }    
   } catch (error) {
     console.error('Overall Auth Error:', error);
     res.status(500).json({
@@ -202,8 +207,6 @@ app.get('/api/user/top-artists', authenticate, async (req, res) => {
   }
 });
 
-
-
 async function refreshAccessToken(userId, spotifyApi) {
   try {
     // Retrieve the refresh token from Firestore
@@ -235,8 +238,5 @@ async function refreshAccessToken(userId, spotifyApi) {
   }
 }
 
-
-
 // Export the Express app as a Firebase Function with secrets
 exports.api = onRequest(app);
-
