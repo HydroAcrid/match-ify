@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Callback from './components/Callback';
 import Setup from './components/Setup';
 import Login from './components/Login';
+import TopFivePage from './components/TopFivePage';
+import MatchPage from './components/MatchPage';
 import Dashboard from './components/Dashboard';
 import PrivateRoute from './components/PrivateRoute';
 
@@ -44,6 +46,7 @@ function App() {
             </PrivateRoute>
           }/>
           <Route path = "/top-five" element={< TopFivePage />} />
+          <Route path = "/match" element={< MatchPage />} />
 
       </Routes>
     </Router>
