@@ -42,8 +42,9 @@ function App() {
             <PrivateRoute>
               <Dashboard />
             </PrivateRoute>
-          }
-        />
+          }/>
+          <Route path = "/top-five" element={< TopFivePage />} />
+
       </Routes>
     </Router>
   );
