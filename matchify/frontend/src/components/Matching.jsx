@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { auth } from '../firebase';
 import { useNavigate } from 'react-router-dom';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import toast, { Toaster } from 'react-hot-toast';
 
@@ -51,6 +51,29 @@ const Matching = () => {
     fetchArtists();
   }, [debouncedTerm]);
 
+  // Check if user already has selected artists
+  useEffect(() => {
+    const checkUserArtists = async () => {
+      try {
+        const uid = auth.currentUser.uid;
+        const userDocRef = doc(db, 'users', uid);
+        const userDocSnap = await getDoc(userDocRef);
+
+        if (userDocSnap.exists()) {
+          const userData = userDocSnap.data();
+          if (userData.favoriteArtists && userData.favoriteArtists.length === 5) {
+            // User already has 5 favorite artists, redirect to dashboard
+            navigate('/dashboard');
+          }
+        }
+      } catch (error) {
+        console.error('Error checking user artists:', error);
+      }
+    };
+
+    checkUserArtists();
+  }, [navigate]);
+
   const handleSelectArtist = (artist) => {
     if (selectedArtists.length >= 5) {
       toast.error('You can select up to 5 artists.');
@@ -69,6 +92,10 @@ const Matching = () => {
   };
 
   const handleSubmit = async () => {
+    if (selectedArtists.length !== 5) {
+      toast.error('Please select exactly 5 artists.');
+      return;
+    }
     try {
       const uid = auth.currentUser.uid;
       const userDocRef = doc(db, 'users', uid);
@@ -87,125 +114,131 @@ const Matching = () => {
   };
 
   return (
-    <div className="min-h-screen p-6">
-    <Toaster />
-    <nav className="navbar mb-6">
+    <div className="min-h-screen p-6 bg-neutral text-base-100 font-sans">
+      <Toaster />
+      <nav className="navbar mb-6 bg-neutral text-primary">
         <div className="flex-1">
-        <a className="btn btn-ghost normal-case text-xl">Matchify</a>
+          <a className="btn btn-ghost normal-case text-xl text-primary">Matchify</a>
         </div>
-    </nav>
-    <h1 className="text-3xl font-bold text-center mb-6">
+      </nav>
+      <h1 className="text-3xl font-bold text-center mb-6 text-primary">
         Select Your Top 5 Artists
-    </h1>
-    <div className="flex justify-between items-start w-full space-x-4">
+      </h1>
+      <div className="flex w-full space-x-4">
         {/* Left Side: Search and Results */}
-        <div className="flex-grow pr-4 bg-red-100">
-        <div className="form-control mb-4">
+        <div className="w-1/2 pr-4">
+          <div className="form-control mb-4">
             <input
-            type="text"
-            placeholder="Search for artists"
-            className="input input-bordered w-full"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+              type="text"
+              placeholder="Search for artists"
+              className="input input-bordered input-primary w-full"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
-        </div>
-        <div className="overflow-y-auto" style={{ maxHeight: '600px' }}>
+          </div>
+          <div className="overflow-y-auto" style={{ maxHeight: '600px' }}>
             {artistResults.length > 0 && (
-            <table className="table w-full">
+              <table className="table w-full">
                 <tbody>
-                {artistResults.map((artist) => (
+                  {artistResults.map((artist) => (
                     <tr
-                    key={artist.id}
-                    className="hover:bg-gray-100 cursor-pointer"
-                    onClick={() => handleSelectArtist(artist)}
+                      key={artist.id}
+                      className="hover:bg-base-200 cursor-pointer"
+                      onClick={() => handleSelectArtist(artist)}
                     >
-                    <td className="w-16">
+                      <td className="w-16">
                         <div className="avatar">
-                        <div className="mask mask-circle w-16 h-16">
+                          <div className="mask mask-circle w-16 h-16">
                             {artist.images?.[2]?.url ? (
-                            <img
+                              <img
                                 src={artist.images[2].url}
                                 alt={artist.name}
                                 className="w-16 h-16 object-cover"
-                            />
+                              />
                             ) : (
-                            <div className="w-16 h-16 flex items-center justify-center bg-gray-600">
+                              <div className="w-16 h-16 flex items-center justify-center bg-gray-600">
                                 <span className="text-white text-sm">
-                                {artist.name.charAt(0)}
+                                  {artist.name.charAt(0)}
                                 </span>
-                            </div>
+                              </div>
                             )}
+                          </div>
                         </div>
-                        </div>
-                    </td>
-                    <td>
+                      </td>
+                      <td>
                         <div className="font-bold">{artist.name}</div>
                         <div className="text-sm opacity-50">
-                        {artist.genres?.[0] || 'Unknown Genre'}
+                          {artist.genres?.[0] || 'Unknown Genre'}
                         </div>
-                    </td>
+                      </td>
                     </tr>
-                ))}
+                  ))}
                 </tbody>
-            </table>
+              </table>
             )}
-        </div>
+          </div>
         </div>
 
         {/* Right Side: Selected Artists */}
-        <div className="flex-grow pl-4 bg-blue-100 min-h-[200px]">
-        {selectedArtists.length > 0 ? (
+        <div className="w-1/2 pl-4">
+          {selectedArtists.length > 0 ? (
             <div>
-            <h2 className="text-2xl font-semibold mb-4">Your Selected Artists</h2>
-            <div className="overflow-y-auto" style={{ maxHeight: '600px' }}>
+              <h2 className="text-2xl font-semibold mb-4 text-primary">Your Selected Artists</h2>
+              <div className="overflow-y-auto" style={{ maxHeight: '500px' }}>
                 {selectedArtists.map((artist) => (
-                <div
+                  <div
                     key={artist.id}
-                    className="card card-side bg-base-100 shadow-xl mb-4"
-                >
+                    className="card card-side bg-base-100 shadow-xl mb-4 hover:bg-base-200"
+                  >
                     <figure className="pl-4">
-                    <div className="avatar">
+                      <div className="avatar">
                         <div className="mask mask-circle w-16 h-16">
-                        {artist.images?.[1]?.url ? (
+                          {artist.images?.[1]?.url ? (
                             <img
-                            src={artist.images[1].url}
-                            alt={artist.name}
-                            className="w-16 h-16 object-cover"
+                              src={artist.images[1].url}
+                              alt={artist.name}
+                              className="w-16 h-16 object-cover"
                             />
-                        ) : (
+                          ) : (
                             <div className="w-16 h-16 flex items-center justify-center bg-gray-600">
-                            <span className="text-white text-lg">
+                              <span className="text-white text-lg">
                                 {artist.name.charAt(0)}
-                            </span>
+                              </span>
                             </div>
-                        )}
+                          )}
                         </div>
-                    </div>
+                      </div>
                     </figure>
                     <div className="card-body">
-                    <h2 className="card-title">{artist.name}</h2>
-                    <div className="card-actions justify-end">
+                      <h2 className="card-title text-base-100">{artist.name}</h2>
+                      <div className="card-actions justify-end">
                         <button
-                        className="btn btn-sm btn-error"
-                        onClick={() => handleRemoveArtist(artist.id)}
+                          className="btn btn-sm btn-secondary"
+                          onClick={() => handleRemoveArtist(artist.id)}
                         >
-                        Remove
+                          Remove
                         </button>
+                      </div>
                     </div>
-                    </div>
-                </div>
+                  </div>
                 ))}
+              </div>
+              {/* Proceed button outside of the scrollable div */}
+              {selectedArtists.length === 5 && (
+                <button
+                  className="btn btn-primary w-full mt-4"
+                  onClick={handleSubmit}
+                >
+                  Proceed to Dashboard
+                </button>
+              )}
             </div>
-            </div>
-        ) : (
+          ) : (
             <p className="text-gray-500">No artists selected yet.</p>
-        )}
+          )}
         </div>
+      </div>
     </div>
-    </div>
-
-
-
   );
 };
 

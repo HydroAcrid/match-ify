@@ -51,6 +51,8 @@ function App() {
               </PrivateRoute>
             }
           />
+          <Route path = "/top-five" element={< TopFivePage />} />
+          <Route path = "/match" element={< MatchPage />} />
         </Routes>
       </Router>
     </div>
