@@ -1,17 +1,17 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../firebase';
 import { signInWithCustomToken } from 'firebase/auth';
 
 const Callback = () => {
   const navigate = useNavigate();
-  const hasFetched = useRef(false); // Prevent multiple executions
+  const hasFetched = useRef(false);
 
   useEffect(() => {
     if (hasFetched.current) {
-      return; // Exit if already fetched
+      return;
     }
-    hasFetched.current = true; // Mark as fetched
+    hasFetched.current = true;
 
     const code = new URLSearchParams(window.location.search).get('code');
     console.log('Authorization code received in frontend:', code);
@@ -29,20 +29,6 @@ const Callback = () => {
             try {
               const errorData = await res.json();
               errorMessage = errorData.details || errorMessage;
-
-              // Specifically handle authorization code expiration
-              if (errorMessage.includes('Authorization code expired')) {
-                alert('Login session expired. Please login again.');
-                window.location.href = '/'; // Redirect to home/login page
-                return null;
-              }
-
-              // Handle invalid grant errors
-              if (errorMessage.includes('invalid_grant')) {
-                alert('Invalid login. Please try again.');
-                window.location.href = '/';
-                return null;
-              }
             } catch (parseError) {
               console.error('Error parsing error response:', parseError);
             }
@@ -55,14 +41,11 @@ const Callback = () => {
             const { firebaseToken } = data;
 
             signInWithCustomToken(auth, firebaseToken)
-              .then((userCredential) => {
-                console.log('User signed in:', userCredential.user);
-                navigate('/setup');
+              .then(() => {
+                navigate('/matching'); // Redirect to Matching page
               })
               .catch((error) => {
                 console.error('Firebase sign-in error:', error);
-                console.error('Error code:', error.code);
-                console.error('Error message:', error.message);
                 alert(`Firebase sign-in error: ${error.message}`);
                 window.location.href = '/';
               });
@@ -76,7 +59,12 @@ const Callback = () => {
     }
   }, [navigate]);
 
-  return <div>Loading authentication...</div>;
+  return (
+    <div className="flex justify-center items-center h-screen">
+      <span className="loading loading-spinner loading-lg"></span>
+    </div>
+  );
+  
 };
 
 export default Callback;

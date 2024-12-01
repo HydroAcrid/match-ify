@@ -62,7 +62,16 @@ const Dashboard = () => {
                 Welcome, {userData.displayName || 'User'}!
               </h2>
               <p>Email: {userData.email}</p>
-              {/* Display other user information */}
+              <h3 className="text-xl mt-4">Your Favorite Artists:</h3>
+              {userData.favoriteArtists ? (
+                <ul>
+                  {userData.favoriteArtists.map((artist) => (
+                    <li key={artist.id}>{artist.name}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p>You haven't selected any favorite artists yet.</p>
+              )}
             </div>
           </div>
         ) : (

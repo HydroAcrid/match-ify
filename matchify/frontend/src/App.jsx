@@ -7,6 +7,8 @@ import TopFivePage from './components/TopFivePage';
 import MatchPage from './components/MatchPage';
 import Dashboard from './components/Dashboard';
 import PrivateRoute from './components/PrivateRoute';
+import Matching from './components/Matching';
+import 'daisyui/dist/full.css';
 
 function App() {
   const clientId = '9e5b80440e6445cebafa8377987336e6';
@@ -18,38 +20,40 @@ function App() {
   )}&redirect_uri=${encodeURIComponent(redirectUri)}`;
 
   return (
-    <Router>
-      <Routes>
-        <Route
-          path="/"
-          element={
-            <div>
-              <h1>Welcome to Matchify</h1>
-              <a href={authUrl}>
-                <button>Login with Spotify</button>
-              </a>
-              <p>or</p>
-              <a href="/login">
-                <button>Login with Email</button>
-              </a>
-            </div>
-          }
-        />
-        <Route path="/callback" element={<Callback />} />
-        <Route path="/setup" element={<Setup />} />
-        <Route path="/login" element={<Login />} />
-        <Route
-          path="/dashboard"
-          element={
-            <PrivateRoute>
-              <Dashboard />
-            </PrivateRoute>
-          }/>
-          <Route path = "/top-five" element={< TopFivePage />} />
-          <Route path = "/match" element={< MatchPage />} />
-
-      </Routes>
-    </Router>
+    <div data-theme="spotify">
+      <Router>
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <div className="flex flex-col items-center justify-center min-h-screen bg-base-200">
+                <h1 className="text-5xl font-bold mb-6">Welcome to Matchify</h1>
+                <a href={authUrl}>
+                  <button className="btn btn-primary">Login with Spotify</button>
+                </a>
+              </div>
+            }
+          />
+          <Route path="/callback" element={<Callback />} />
+          <Route
+            path="/matching"
+            element={
+              <PrivateRoute>
+                <Matching />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <PrivateRoute>
+                <Dashboard />
+              </PrivateRoute>
+            }
+          />
+        </Routes>
+      </Router>
+    </div>
   );
 }
 
