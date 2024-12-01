@@ -207,6 +207,54 @@ app.get('/api/user/top-artists', authenticate, async (req, res) => {
   }
 });
 
+// Endpoint to search for artists
+app.get('/api/search/artists', authenticate, async (req, res) => {
+  try {
+    const { query } = req.query;
+
+    if (!query) {
+      return res.status(400).json({ error: 'Missing search query' });
+    }
+
+    const uid = req.user.uid;
+    const userDoc = await db.collection('users').doc(uid).get();
+
+    if (!userDoc.exists) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const { spotifyAccessToken, spotifyRefreshToken } = userDoc.data();
+
+    const spotifyApi = new SpotifyWebApi({
+      clientId: spotifyClientId,
+      clientSecret: spotifyClientSecret,
+    });
+
+    spotifyApi.setAccessToken(spotifyAccessToken);
+    spotifyApi.setRefreshToken(spotifyRefreshToken);
+
+    try {
+      // Search for artists
+      const response = await spotifyApi.searchArtists(query, { limit: 5 });
+      res.status(200).json(response.body.artists.items);
+    } catch (error) {
+      if (error.statusCode === 401) {
+        // Access token expired, refresh it
+        await refreshAccessToken(uid, spotifyApi);
+        // Retry the request
+        const response = await spotifyApi.searchArtists(query, { limit: 5 });
+        res.status(200).json(response.body.artists.items);
+      } else {
+        throw error;
+      }
+    }
+  } catch (error) {
+    console.error('Error searching for artists:', error);
+    res.status(500).json({ error: 'Failed to search for artists' });
+  }
+});
+
+
 async function refreshAccessToken(userId, spotifyApi) {
   try {
     // Retrieve the refresh token from Firestore

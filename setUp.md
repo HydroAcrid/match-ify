@@ -8,7 +8,9 @@
 
 # Run Instructions (Backend)
 1. cd functions
-2. firebase emulators:start
+2. get the env file
+3. get this json file 
+4. firebase emulators:start
 
 # Deployment Instructions (Backend)
 1. firebase deploy --only functions
