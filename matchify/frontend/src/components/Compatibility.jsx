@@ -3,10 +3,12 @@ import { auth } from '../firebase';
 import { db } from '../firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
+import { FaMusic } from 'react-icons/fa';
 
 const Compatibility = () => {
   const [compatibleUsers, setCompatibleUsers] = useState([]);
   const [currentUserData, setCurrentUserData] = useState(null);
+  const [selectedUser, setSelectedUser] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -38,7 +40,7 @@ const Compatibility = () => {
             user.favoriteArtists?.some((a) => a.id === artist.id)
           );
 
-          const compatibilityPercentage = (sharedArtists.length / 5) * 100;
+          const compatibilityPercentage = Math.min((sharedArtists.length / 5) * 100, 100);
 
           return {
             id: user.id,
@@ -82,16 +84,17 @@ const Compatibility = () => {
           </button>
         </div>
       </div>
-      <div className="container mx-auto py-8">
-        <h1 className="text-3xl font-bold text-center mb-6 text-primary">
+      <div className="container mx-auto py-8 px-4">
+        <h1 className="text-4xl font-bold text-center mb-8 text-primary">
           Your Top 5 Matches
         </h1>
         {compatibleUsers.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {compatibleUsers.map((user) => (
               <div
                 key={user.id}
-                className="card bg-base-100 shadow-xl p-4 flex flex-col items-center"
+                className="card bg-base-100 shadow-xl p-6 flex flex-col items-center transform transition-transform duration-300 hover:scale-105 cursor-pointer"
+                onClick={() => setSelectedUser(user)}
               >
                 {user.photoURL ? (
                   <img
@@ -107,11 +110,20 @@ const Compatibility = () => {
                   </div>
                 )}
                 <h2 className="card-title">{user.displayName}</h2>
-                <p className="text-sm">
-                  Compatibility: {user.compatibilityPercentage}%
-                </p>
-                <h3 className="mt-2">Shared Favorite Artists:</h3>
-                <ul>
+                <div
+                  className="radial-progress text-primary mt-2"
+                  style={{
+                    "--value": user.compatibilityPercentage,
+                    "--size": "120px",
+                    "--thickness": "8px",
+                  }}
+                >
+                  {user.compatibilityPercentage}%
+                </div>
+                <h4 className="mt-4 text-md font-semibold flex items-center">
+                  <FaMusic className="mr-2" /> Shared Favorite Artists:
+                </h4>
+                <ul className="list-disc list-inside text-sm">
                   {user.sharedArtists.map((artist) => (
                     <li key={artist.id}>{artist.name}</li>
                   ))}
@@ -125,6 +137,55 @@ const Compatibility = () => {
           </p>
         )}
       </div>
+
+      {/* Modal for Detailed Compatibility */}
+      {selectedUser && (
+        <div className="modal modal-open">
+          <div className="modal-box relative">
+            <label
+              htmlFor="my-modal"
+              className="btn btn-sm btn-circle absolute right-2 top-2"
+              onClick={() => setSelectedUser(null)}
+            >
+              ✕
+            </label>
+            <div className="flex flex-col items-center">
+              {selectedUser.photoURL ? (
+                <img
+                  src={selectedUser.photoURL}
+                  alt="Profile"
+                  className="rounded-full w-24 h-24 mb-4"
+                />
+              ) : (
+                <div className="rounded-full bg-gray-600 w-24 h-24 mb-4 flex items-center justify-center">
+                  <span className="text-white text-3xl">
+                    {selectedUser.displayName.charAt(0)}
+                  </span>
+                </div>
+              )}
+              <h3 className="text-2xl font-bold">{selectedUser.displayName}</h3>
+              <div
+                className="radial-progress text-primary mt-4"
+                style={{
+                  "--value": selectedUser.compatibilityPercentage,
+                  "--size": "100px",
+                  "--thickness": "6px",
+                }}
+              >
+                {selectedUser.compatibilityPercentage}%
+              </div>
+              <h4 className="mt-4 text-lg font-semibold flex items-center">
+                <FaMusic className="mr-2" /> Shared Favorite Artists:
+              </h4>
+              <ul className="list-disc list-inside text-sm">
+                {selectedUser.sharedArtists.map((artist) => (
+                  <li key={artist.id}>{artist.name}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
