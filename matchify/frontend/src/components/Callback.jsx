@@ -5,6 +5,8 @@ import { auth } from '../firebase';
 import { signInWithCustomToken } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
+import { API_BASE_URL } from '../config';
+
 
 const Callback = () => {
   const navigate = useNavigate();
@@ -21,7 +23,7 @@ const Callback = () => {
 
     if (code) {
       // Exchange the code for tokens
-      fetch('http://localhost:5001/ked225/us-central1/api/spotify/auth', {
+      fetch('${API_BASE_URL}/spotify/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code }),

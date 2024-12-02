@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import toast, { Toaster } from 'react-hot-toast';
+import { API_BASE_URL } from '../config';
 
 const Matching = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -31,7 +32,7 @@ const Matching = () => {
         try {
           const token = await auth.currentUser.getIdToken();
           const response = await axios.get(
-            `http://localhost:5001/ked225/us-central1/api/api/search/artists`,
+            `${API_BASE_URL}/api/search/artists`,
             {
               params: { query: debouncedTerm },
               headers: {

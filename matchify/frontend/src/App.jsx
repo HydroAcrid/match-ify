@@ -17,7 +17,9 @@ import NotAuthorized from './components/NotAuthorized';
 
 function App() {
   const clientId = '9e5b80440e6445cebafa8377987336e6';
-  const redirectUri = 'http://localhost:5173/callback'; // Your redirect URI
+  // const redirectUri = 'http://localhost:5173/callback'; // Your redirect URI
+  const redirectUri = "https://match-ify.netlify.app/callback"; // Replace with your actual Netlify URL
+
   const scopes = 'user-top-read user-read-email user-read-private';
 
   const authUrl = `https://accounts.spotify.com/authorize?response_type=code&client_id=${clientId}&scope=${encodeURIComponent(
