@@ -114,11 +114,11 @@ const Matching = () => {
   };
 
   return (
-    <div className="min-h-screen p-6 bg-neutral text-base-100 font-sans">
+    <div className="min-h-screen p-6 bg-neutral text-base-content font-sans">
       <Toaster />
-      <nav className="navbar mb-6 bg-neutral text-primary">
+      <nav className="navbar mb-6 bg-neutral text-base-content">
         <div className="flex-1">
-          <a className="btn btn-ghost normal-case text-xl text-primary">Matchify</a>
+          <a className="normal-case text-xl text-primary">Matchify</a>
         </div>
       </nav>
       <h1 className="text-3xl font-bold text-center mb-6 text-primary">
@@ -131,14 +131,14 @@ const Matching = () => {
             <input
               type="text"
               placeholder="Search for artists"
-              className="input input-bordered input-primary w-full"
+              className="input input-bordered input-primary w-full text-base-content placeholder-base-content"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
           <div className="overflow-y-auto" style={{ maxHeight: '600px' }}>
             {artistResults.length > 0 && (
-              <table className="table w-full">
+              <table className="table w-full text-base-content">
                 <tbody>
                   {artistResults.map((artist) => (
                     <tr
@@ -166,8 +166,8 @@ const Matching = () => {
                         </div>
                       </td>
                       <td>
-                        <div className="font-bold">{artist.name}</div>
-                        <div className="text-sm opacity-50">
+                        <div className="font-bold text-base-content">{artist.name}</div>
+                        <div className="text-sm opacity-75 text-base-content">
                           {artist.genres?.[0] || 'Unknown Genre'}
                         </div>
                       </td>
@@ -188,8 +188,8 @@ const Matching = () => {
                 {selectedArtists.map((artist) => (
                   <div
                     key={artist.id}
-                    className="card card-side bg-base-100 shadow-xl mb-4 hover:bg-base-200"
-                  >
+                        className="card card-side items-center bg-base-100 shadow-xl mb-4 hover:bg-base-200 text-base-content"
+                    >
                     <figure className="pl-4">
                       <div className="avatar">
                         <div className="mask mask-circle w-16 h-16">
@@ -210,10 +210,10 @@ const Matching = () => {
                       </div>
                     </figure>
                     <div className="card-body">
-                      <h2 className="card-title text-base-100">{artist.name}</h2>
+                      <h2 className="card-title text-base-content">{artist.name}</h2>
                       <div className="card-actions justify-end">
                         <button
-                          className="btn btn-sm btn-secondary"
+                          className="btn btn-sm btn-secondary text-base-content"
                           onClick={() => handleRemoveArtist(artist.id)}
                         >
                           Remove
@@ -223,10 +223,10 @@ const Matching = () => {
                   </div>
                 ))}
               </div>
-              {/* Proceed button outside of the scrollable div */}
+              {/* Proceed button */}
               {selectedArtists.length === 5 && (
                 <button
-                  className="btn btn-primary w-full mt-4"
+                  className="btn btn-primary w-full mt-4 text-base-content"
                   onClick={handleSubmit}
                 >
                   Proceed to Dashboard

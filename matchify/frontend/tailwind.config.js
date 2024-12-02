@@ -22,7 +22,8 @@ module.exports = {
           "neutral": "#191414",
           "base-100": "#121212",   // Dark Gray
           "base-200": "#1E1E1E",   // Slightly lighter than base-100
-          "base-content": "#FFFFFF", // Light text color
+          "base-content": "#FFFFFF", // Set text color to white
+          "neutral-content": "#FFFFFF", // Ensure text on neutral backgrounds is white
           "info": "#2094f3",
           "success": "#1DB954",
           "warning": "#ff9900",
