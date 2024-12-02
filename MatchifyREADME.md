@@ -12,4 +12,4 @@ Matchify is a web-based application that helps you find your most compatible Spo
 3. Admin Page (only accessible to certain users)  - if your user role is an admin, you can view the usage analytics of Matchify
 4. Matching Page - shows you your matches!
 
-### Pages 
+
