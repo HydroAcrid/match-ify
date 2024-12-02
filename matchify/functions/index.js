@@ -44,7 +44,7 @@ console.log("Spotify Client Secret:",
 const app = express();
 
 // Automatically allow cross-origin requests
-app.use(cors({origin: true}));
+app.use(cors({origin: "https://match-ify.netlify.app"}));
 
 // Parse JSON bodies
 app.use(express.json());
@@ -89,13 +89,14 @@ app.post("/spotify/auth", async (req, res) => {
       // Exchange authorization code for tokens
       const data = await spotifyApi.authorizationCodeGrant(code);
       console.log("Token exchange response:", {
-        accessToken: "****", // Mask sensitive information
+        access_token: "****", // Mask sensitive information
         token_type: data.body.token_type,
         expires_in: data.body.expires_in,
         scope: data.body.scope,
       });
 
-      const {accessToken, refreshToken} = data.body;
+      const {access_token: accessToken,
+        refresh_token: refreshToken} = data.body;
       spotifyApi.setAccessToken(accessToken);
 
       // Fetch user profile
@@ -293,7 +294,7 @@ async function refreshAccessToken(userId, spotifyApi) {
 
     // Refresh the access token
     const data = await spotifyApi.refreshAccessToken();
-    const newAccessToken = data.body.accessToken;
+    const newAccessToken = data.body.access_token;
 
     // Update the access token in Firestore
     await db.collection("users").doc(userId).update({

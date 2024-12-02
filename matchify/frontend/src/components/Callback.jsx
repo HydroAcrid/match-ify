@@ -23,7 +23,7 @@ const Callback = () => {
 
     if (code) {
       // Exchange the code for tokens
-      fetch('${API_BASE_URL}/spotify/auth', {
+      fetch(`${API_BASE_URL}/spotify/auth`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code }),
