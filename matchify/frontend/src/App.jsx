@@ -11,6 +11,9 @@ import PrivateRoute from './components/PrivateRoute';
 import Matching from './components/Matching';
 import Compatibility from './components/Compatibility'; // Import Compatibility component
 import 'daisyui/dist/full.css';
+import AdminRoute from './components/AdminRoute'; // Import AdminRoute
+import AdminPage from './components/AdminPage'; // Import AdminPage
+import NotAuthorized from './components/NotAuthorized';
 
 function App() {
   const clientId = '9e5b80440e6445cebafa8377987336e6';
@@ -64,6 +67,15 @@ function App() {
           {/* Other routes */}
           <Route path="/top-five" element={<TopFivePage />} />
           <Route path="/match" element={<MatchPage />} />
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminPage />
+              </AdminRoute>
+            }
+          />
+          <Route path="/not-authorized" element={<NotAuthorized />} />
         </Routes>
       </Router>
     </div>

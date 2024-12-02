@@ -5,10 +5,12 @@ import { signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import HeartsCanvas from './HeartsCanvas'; // Import the HeartsCanvas component
+import { Link } from 'react-router-dom';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [userData, setUserData] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const handleLogout = () => {
     signOut(auth).then(() => navigate('/'));
@@ -22,6 +24,10 @@ const Dashboard = () => {
     navigate('/compatibility');
   };
 
+  const home = () => {
+    navigate('/');
+  };
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -30,7 +36,9 @@ const Dashboard = () => {
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
-          setUserData(docSnap.data());
+          const data = docSnap.data();
+          setUserData(data);
+          setIsAdmin(data.admin === true);
         } else {
           console.log('No such document!');
         }
@@ -49,7 +57,7 @@ const Dashboard = () => {
         <HeartsCanvas />
       <div className="navbar bg-base-100 shadow relative z-10">
         <div className="flex-1">
-          <a className="btn btn-ghost normal-case text-xl">Matchify</a>
+          <a className="btn btn-ghost normal-case text-xl" onClick={home}>Matchify</a>
         </div>
         <div className="flex-none">
           <button className="btn" onClick={handleLogout}>
@@ -57,6 +65,13 @@ const Dashboard = () => {
           </button>
         </div>
       </div>
+      {isAdmin && (
+          <div className="flex justify-center mt-4 relative z-10">
+            <Link to="/admin">
+              <button className="btn btn-secondary">Go to Admin Page</button>
+            </Link>
+          </div>
+        )}
       <div className="container mx-auto py-8 relative z-10">
         {userData ? (
           <div className="card w-full max-w-md bg-base-100 shadow-xl mx-auto border border-primary rounded-lg">
