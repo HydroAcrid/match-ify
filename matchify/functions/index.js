@@ -14,17 +14,28 @@ const serviceAccountPath = path.resolve(__dirname, '../ked225-firebase-adminsdk-
 dotenv.config({ path: path.resolve(__dirname, '../.env') }); // Correct
 
 // Initialize Firebase Admin
-initializeApp({
-  credential: cert(require(serviceAccountPath))
-});
+// initializeApp({
+//   credential: cert(require(serviceAccountPath))
+// });
+
+//dont need credentials when using cloudsdk 
+initializeApp();
 
 const db = getFirestore();
 const auth = getAuth();
 
 // Access Spotify credentials from environment variables
-const spotifyClientId = process.env.SPOTIFY_CLIENT_ID;
-const spotifyClientSecret = process.env.SPOTIFY_CLIENT_SECRET;
+// const spotifyClientId = process.env.SPOTIFY_CLIENT_ID;
+// const spotifyClientSecret = process.env.SPOTIFY_CLIENT_SECRET;
+
+const spotifyClientId = defineSecret('SPOTIFY_CLIENT_ID');
+const spotifyClientSecret = defineSecret('SPOTIFY_CLIENT_SECRET');
+
+
 const redirectUri = 'http://localhost:5173/callback';
+
+// NEW REDIRECT URI 
+
 
 console.log('Spotify Client ID:', spotifyClientId);
 console.log('Spotify Client Secret:', spotifyClientSecret ? 'Loaded' : 'Not Loaded');
