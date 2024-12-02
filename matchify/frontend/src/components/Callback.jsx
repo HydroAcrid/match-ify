@@ -77,10 +77,11 @@ const Callback = () => {
           }
         })
         .catch((error) => {
-          console.error('Authentication Error:', error.message);
-          alert(error.message);
+          console.error('Authentication Error:', error);
+          const errorMessage = error.response?.data?.details || error.message || JSON.stringify(error);
+          alert(`Authentication Error: ${errorMessage}`);
           window.location.href = '/';
-        });
+        });        
     }
   }, [navigate]);
 

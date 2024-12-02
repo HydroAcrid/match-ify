@@ -104,10 +104,15 @@ app.post("/spotify/auth", async (req, res) => {
       try {
         userProfile = await spotifyApi.getMe();
       } catch (profileError) {
-        console.error("Error fetching Spotify profile:", profileError);
+        console.error("Error fetching Spotify profile:",
+            JSON.stringify(profileError, null, 2));
+        console.error("Error status code:",
+            profileError.statusCode);
+        console.error("Error body:",
+            JSON.stringify(profileError.body, null, 2));
         return res.status(500).json({
           error: "Profile retrieval failed",
-          details: profileError.message,
+          details: profileError.message || profileError,
         });
       }
 
