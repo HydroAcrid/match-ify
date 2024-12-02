@@ -1,3 +1,4 @@
+// App.jsx
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Callback from './components/Callback';
@@ -8,6 +9,7 @@ import MatchPage from './components/MatchPage';
 import Dashboard from './components/Dashboard';
 import PrivateRoute from './components/PrivateRoute';
 import Matching from './components/Matching';
+import Compatibility from './components/Compatibility'; // Import Compatibility component
 import 'daisyui/dist/full.css';
 
 function App() {
@@ -51,8 +53,17 @@ function App() {
               </PrivateRoute>
             }
           />
-          <Route path = "/top-five" element={< TopFivePage />} />
-          <Route path = "/match" element={< MatchPage />} />
+          <Route
+            path="/compatibility"
+            element={
+              <PrivateRoute>
+                <Compatibility />
+              </PrivateRoute>
+            }
+          />
+          {/* Other routes */}
+          <Route path="/top-five" element={<TopFivePage />} />
+          <Route path="/match" element={<MatchPage />} />
         </Routes>
       </Router>
     </div>

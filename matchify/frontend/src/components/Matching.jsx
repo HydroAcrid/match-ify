@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { auth } from '../firebase';
 import { useNavigate } from 'react-router-dom';
-import { doc, updateDoc, getDoc } from 'firebase/firestore';
+import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import toast, { Toaster } from 'react-hot-toast';
 
@@ -51,7 +51,8 @@ const Matching = () => {
     fetchArtists();
   }, [debouncedTerm]);
 
-  // Check if user already has selected artists
+  // Remove the useEffect that redirects to dashboard if user has favorite artists
+  /*
   useEffect(() => {
     const checkUserArtists = async () => {
       try {
@@ -73,6 +74,7 @@ const Matching = () => {
 
     checkUserArtists();
   }, [navigate]);
+  */
 
   const handleSelectArtist = (artist) => {
     if (selectedArtists.length >= 5) {
@@ -166,7 +168,9 @@ const Matching = () => {
                         </div>
                       </td>
                       <td>
-                        <div className="font-bold text-base-content">{artist.name}</div>
+                        <div className="font-bold text-base-content">
+                          {artist.name}
+                        </div>
                         <div className="text-sm opacity-75 text-base-content">
                           {artist.genres?.[0] || 'Unknown Genre'}
                         </div>
@@ -183,13 +187,15 @@ const Matching = () => {
         <div className="w-1/2 pl-4">
           {selectedArtists.length > 0 ? (
             <div>
-              <h2 className="text-2xl font-semibold mb-4 text-primary">Your Selected Artists</h2>
+              <h2 className="text-2xl font-semibold mb-4 text-primary">
+                Your Selected Artists
+              </h2>
               <div className="overflow-y-auto" style={{ maxHeight: '500px' }}>
                 {selectedArtists.map((artist) => (
                   <div
                     key={artist.id}
-                        className="card card-side items-center bg-base-100 shadow-xl mb-4 hover:bg-base-200 text-base-content"
-                    >
+                    className="card card-side items-center bg-base-100 shadow-xl mb-4 hover:bg-base-200 text-base-content"
+                  >
                     <figure className="pl-4">
                       <div className="avatar">
                         <div className="mask mask-circle w-16 h-16">
@@ -210,7 +216,9 @@ const Matching = () => {
                       </div>
                     </figure>
                     <div className="card-body">
-                      <h2 className="card-title text-base-content">{artist.name}</h2>
+                      <h2 className="card-title text-base-content">
+                        {artist.name}
+                      </h2>
                       <div className="card-actions justify-end">
                         <button
                           className="btn btn-sm btn-secondary text-base-content"

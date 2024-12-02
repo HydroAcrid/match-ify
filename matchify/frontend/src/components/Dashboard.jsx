@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
+import HeartsCanvas from './HeartsCanvas'; // Import the HeartsCanvas component
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -11,6 +12,14 @@ const Dashboard = () => {
 
   const handleLogout = () => {
     signOut(auth).then(() => navigate('/'));
+  };
+
+  const handleChangeTop5 = () => {
+    navigate('/matching');
+  };
+
+  const handleMeetMatches = () => {
+    navigate('/compatibility');
   };
 
   useEffect(() => {
@@ -36,8 +45,9 @@ const Dashboard = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-base-200">
-      <div className="navbar bg-base-100 shadow">
+    <div className="min-h-screen relative overflow-hidden">
+        <HeartsCanvas />
+      <div className="navbar bg-base-100 shadow relative z-10">
         <div className="flex-1">
           <a className="btn btn-ghost normal-case text-xl">Matchify</a>
         </div>
@@ -47,9 +57,9 @@ const Dashboard = () => {
           </button>
         </div>
       </div>
-      <div className="container mx-auto py-8">
+      <div className="container mx-auto py-8 relative z-10">
         {userData ? (
-          <div className="card w-full max-w-md bg-base-100 shadow-xl mx-auto">
+          <div className="card w-full max-w-md bg-base-100 shadow-xl mx-auto border border-primary rounded-lg">
             <div className="card-body items-center text-center">
               {userData.photoURL && (
                 <img
@@ -61,14 +71,21 @@ const Dashboard = () => {
               <h2 className="card-title">
                 Welcome, {userData.displayName || 'User'}!
               </h2>
-              <p>Email: {userData.email}</p>
               <h3 className="text-xl mt-4">Your Favorite Artists:</h3>
               {userData.favoriteArtists ? (
-                <ul>
-                  {userData.favoriteArtists.map((artist) => (
-                    <li key={artist.id}>{artist.name}</li>
-                  ))}
-                </ul>
+                <div>
+                  <ul>
+                    {userData.favoriteArtists.map((artist) => (
+                      <li key={artist.id}>{artist.name}</li>
+                    ))}
+                  </ul>
+                  <button
+                    className="btn btn-sm btn-secondary mt-4"
+                    onClick={handleChangeTop5}
+                  >
+                    Change Your Top 5 Artists
+                  </button>
+                </div>
               ) : (
                 <p>You haven't selected any favorite artists yet.</p>
               )}
@@ -79,6 +96,14 @@ const Dashboard = () => {
             <button className="btn loading">Loading...</button>
           </div>
         )}
+        <div className="flex justify-center mt-8">
+          <button
+            className="btn btn-primary"
+            onClick={handleMeetMatches}
+          >
+            Meet your matches 💖
+          </button>
+        </div>
       </div>
     </div>
   );

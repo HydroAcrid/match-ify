@@ -1,7 +1,10 @@
+// Callback.jsx
 import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../firebase';
 import { signInWithCustomToken } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../firebase';
 
 const Callback = () => {
   const navigate = useNavigate();
@@ -41,8 +44,28 @@ const Callback = () => {
             const { firebaseToken } = data;
 
             signInWithCustomToken(auth, firebaseToken)
-              .then(() => {
-                navigate('/matching'); // Redirect to Matching page
+              .then(async () => {
+                // After signing in, check if the user has favorite artists
+                const uid = auth.currentUser.uid;
+                const userDocRef = doc(db, 'users', uid);
+                const userDocSnap = await getDoc(userDocRef);
+
+                if (userDocSnap.exists()) {
+                  const userData = userDocSnap.data();
+                  if (
+                    userData.favoriteArtists &&
+                    userData.favoriteArtists.length === 5
+                  ) {
+                    // User has favorite artists, redirect to dashboard
+                    navigate('/dashboard');
+                  } else {
+                    // User does not have favorite artists, redirect to matching
+                    navigate('/matching');
+                  }
+                } else {
+                  // If user document doesn't exist, navigate to matching
+                  navigate('/matching');
+                }
               })
               .catch((error) => {
                 console.error('Firebase sign-in error:', error);
@@ -64,7 +87,6 @@ const Callback = () => {
       <span className="loading loading-spinner loading-lg"></span>
     </div>
   );
-  
 };
 
 export default Callback;
