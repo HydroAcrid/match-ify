@@ -1,24 +1,30 @@
-// const path = require("path");
+const path = require("path");
 // const dotenv = require('dotenv');
 const {onRequest} = require("firebase-functions/v2/https");
 const express = require("express");
 const cors = require("cors");
 const SpotifyWebApi = require("spotify-web-api-node");
-const {initializeApp} = require("firebase-admin/app");
+const {initializeApp, cert} = require("firebase-admin/app"); // Import cert function
 const {getAuth} = require("firebase-admin/auth");
 const {getFirestore} = require("firebase-admin/firestore");
 const {defineSecret} = require("firebase-functions/params");
 
+// Chck if running in emulator
+const isLocal = !!process.env.FUNCTIONS_EMULATOR;  // 'true' if running in emulator
+
 // Load environment variables from .env file
 // dotenv.config({ path: path.resolve(__dirname, '../.env') }); // Correct
 
-// Initialize Firebase Admin
-// initializeApp({
-//   credential: cert(require(serviceAccountPath))
-// });
-
-// dont need credentials when using cloudsdk
-initializeApp();
+if (isLocal) {
+  // Load service account JSON for local development
+  const serviceAccountPath = path.resolve(__dirname, '../ked225-firebase-adminsdk-twon8-d3560c296d.json');
+  initializeApp({
+    credential: cert(require(serviceAccountPath)),
+  });
+} else {
+  // In production, rely on default credentials provided by Cloud Functions
+  initializeApp();
+}
 
 const db = getFirestore();
 const auth = getAuth();
@@ -27,13 +33,20 @@ const auth = getAuth();
 // const spotifyClientId = process.env.SPOTIFY_CLIENT_ID;
 // const spotifyClientSecret = process.env.SPOTIFY_CLIENT_SECRET;
 
+// Establish secret for spotify client id and secret
 const spotifyClientId = defineSecret("SPOTIFY_CLIENT_ID");
 const spotifyClientSecret = defineSecret("SPOTIFY_CLIENT_SECRET");
+
+// Base which redirectURI to use on local or prod
+const redirectUri = isLocal
+  ? 'http://localhost:5173/callback'
+  : 'https://match-ify.netlify.app/callback';
+
 
 // const redirectUri = 'http://localhost:5173/callback';
 
 // NEW REDIRECT URI
-const redirectUri = "https://match-ify.netlify.app/callback"; // Replace with your actual Netlify URL
+// const redirectUri = "https://match-ify.netlify.app/callback"; // Replace with your actual Netlify URL
 
 
 console.log("Spotify Client ID:", spotifyClientId);
@@ -44,13 +57,27 @@ console.log("Spotify Client Secret:",
 const app = express();
 
 // Automatically allow cross-origin requests
-app.use(cors({origin: "https://match-ify.netlify.app"}));
+// app.use(cors({origin: "https://match-ify.netlify.app"}));
+
+// Allow specific origins
+app.use(cors({
+  origin: [
+    "http://localhost:5173",
+    "https://match-ify.netlify.app"
+  ]
+}));
+
 
 // Parse JSON bodies
 app.use(express.json());
 
 // Authenticate user middleware
 const authenticate = require("./utils/authenticate");
+
+// Debugging stuff:
+console.log("FUNCTIONS_EMULATOR:", process.env.FUNCTIONS_EMULATOR);
+console.log("isLocal:", isLocal);
+console.log("redirectUri in use:", redirectUri);
 
 // Routes
 

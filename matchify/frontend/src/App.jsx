@@ -16,9 +16,15 @@ import AdminPage from './components/AdminPage'; // Import AdminPage
 import NotAuthorized from './components/NotAuthorized';
 
 function App() {
-  const clientId = '9e5b80440e6445cebafa8377987336e6';
-  // const redirectUri = 'http://localhost:5173/callback'; // Your redirect URI
-  const redirectUri = "https://match-ify.netlify.app/callback"; // Replace with your actual Netlify URL
+  // Check if we're on the local frontend
+  const isLocalFrontEnd = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+  const clientId = '9e5b80440e6445cebafa8377987336e6'; // Spotify client ID
+  const localRedirectUri = 'http://localhost:5173/callback'; // Local redirect URI
+  const prodRedirectUri = "https://match-ify.netlify.app/callback"; // PROD Netlify URL
+
+  const redirectUri = isLocalFrontEnd ? localRedirectUri : prodRedirectUri;
+
 
   const scopes = 'user-top-read user-read-email user-read-private';
 
